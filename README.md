@@ -178,10 +178,6 @@ src/main/java/io/srnagar/
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 📚 Additional Resources
 
 - [Azure SDK for Java Documentation](https://docs.microsoft.com/en-us/java/api/overview/azure/)
