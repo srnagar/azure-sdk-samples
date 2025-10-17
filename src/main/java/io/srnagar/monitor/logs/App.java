@@ -1,11 +1,10 @@
 package io.srnagar.monitor.logs;
 
 import com.azure.identity.DefaultAzureCredentialBuilder;
-import com.azure.monitor.query.LogsQueryClient;
-import com.azure.monitor.query.LogsQueryClientBuilder;
-import com.azure.monitor.query.models.LogsQueryResult;
-
-import com.azure.monitor.query.models.QueryTimeInterval;
+import com.azure.monitor.query.logs.LogsQueryClient;
+import com.azure.monitor.query.logs.LogsQueryClientBuilder;
+import com.azure.monitor.query.logs.models.LogsQueryResult;
+import com.azure.monitor.query.logs.models.LogsQueryTimeInterval;
 
 import java.time.Duration;
 
@@ -73,7 +72,7 @@ public class App {
         try {
             String kustoQuery = "AppTraces | where TimeGenerated > ago(1h) | limit 10";
             
-            QueryTimeInterval timeInterval = new QueryTimeInterval(Duration.ofHours(1));
+            LogsQueryTimeInterval timeInterval = new LogsQueryTimeInterval(Duration.ofHours(1));
             LogsQueryResult result = client.queryWorkspace(workspaceId, kustoQuery, timeInterval);
             
             System.out.println("   Query executed successfully!");
@@ -96,7 +95,7 @@ public class App {
         try {
             String kustoQuery = "Heartbeat | where TimeGenerated > ago(30m) | limit 5";
             
-            QueryTimeInterval timeInterval = new QueryTimeInterval(Duration.ofMinutes(30));
+            LogsQueryTimeInterval timeInterval = new LogsQueryTimeInterval(Duration.ofMinutes(30));
             LogsQueryResult result = client.queryWorkspace(workspaceId, kustoQuery, timeInterval);
             
             System.out.println("   Query executed successfully!");
@@ -125,7 +124,7 @@ public class App {
                 | limit 5
                 """;
             
-            QueryTimeInterval timeInterval = new QueryTimeInterval(Duration.ofHours(1));
+            LogsQueryTimeInterval timeInterval = new LogsQueryTimeInterval(Duration.ofHours(1));
             LogsQueryResult result = client.queryWorkspace(workspaceId, kustoQuery, timeInterval);
             
             System.out.println("   Query executed successfully!");

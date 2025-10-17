@@ -1,13 +1,15 @@
 package io.srnagar.monitor.metrics;
 
 import com.azure.identity.DefaultAzureCredentialBuilder;
-import com.azure.monitor.query.MetricsQueryClient;
-import com.azure.monitor.query.MetricsQueryClientBuilder;
-import com.azure.monitor.query.models.MetricsQueryResult;
-import com.azure.monitor.query.models.MetricValue;
+import com.azure.monitor.query.metrics.MetricsClient;
+import com.azure.monitor.query.metrics.MetricsClientBuilder;
+import com.azure.monitor.query.metrics.models.MetricsQueryResult;
+import com.azure.monitor.query.metrics.models.MetricsQueryResourcesResult;
+import com.azure.monitor.query.metrics.models.MetricValue;
 
 import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Standalone Azure Monitor Metrics Query sample application
@@ -38,8 +40,8 @@ public class App {
         }
         
         try {
-            // Create MetricsQueryClient using DefaultAzureCredential
-            MetricsQueryClient metricsQueryClient = new MetricsQueryClientBuilder()
+            // Create MetricsClient using DefaultAzureCredential
+            MetricsClient metricsClient = new MetricsClientBuilder()
                 .credential(new DefaultAzureCredentialBuilder().build())
                 .buildClient();
             
@@ -47,15 +49,15 @@ public class App {
             
             // Query 1: CPU metrics
             System.out.println("\\n🖥️  Query 1: CPU Metrics");
-            queryCpuMetrics(metricsQueryClient, resourceUri);
+            queryCpuMetrics(metricsClient, resourceUri);
             
             // Query 2: Memory metrics (for VMs that support it)
             System.out.println("\\n🧠 Query 2: Memory Metrics");
-            queryMemoryMetrics(metricsQueryClient, resourceUri);
+            queryMemoryMetrics(metricsClient, resourceUri);
             
             // Query 3: Network metrics
             System.out.println("\\n🌐 Query 3: Network Metrics");
-            queryNetworkMetrics(metricsQueryClient, resourceUri);
+            queryNetworkMetrics(metricsClient, resourceUri);
             
             System.out.println("\\n🎉 Azure Monitor Metrics sample completed successfully!");
             
@@ -71,78 +73,90 @@ public class App {
         }
     }
     
-    private static void queryCpuMetrics(MetricsQueryClient client, String resourceUri) {
+    private static void queryCpuMetrics(MetricsClient client, String resourceUri) {
         try {
-            MetricsQueryResult result = client.queryResource(
-                resourceUri,
-                Arrays.asList("Percentage CPU")
+            MetricsQueryResourcesResult result = client.queryResources(
+                Collections.singletonList(resourceUri),
+                Arrays.asList("Percentage CPU"),
+                "Microsoft.Compute/virtualMachines"
             );
             
             System.out.println("   CPU metrics query executed successfully!");
-            System.out.println("   Metrics returned: " + result.getMetrics().size());
+            System.out.println("   Resource queries returned: " + result.getMetricsQueryResults().size());
             
-            result.getMetrics().forEach(metric -> {
-                System.out.println("   Metric: " + metric.getMetricName() + " (Unit: " + metric.getUnit() + ")");
-                
-                metric.getTimeSeries().stream().limit(1).forEach(timeSeries -> {
-                    System.out.println("     Time series with " + timeSeries.getValues().size() + " values");
-                    timeSeries.getValues().stream().limit(3).forEach(value -> {
-                        printMetricValue("CPU", value);
+            for (MetricsQueryResult queryResult : result.getMetricsQueryResults()) {
+                System.out.println("   Resource ID: " + queryResult.getResourceId());
+                queryResult.getMetrics().forEach(metric -> {
+                    System.out.println("   Metric: " + metric.getMetricName() + " (Unit: " + metric.getUnit() + ")");
+                    
+                    metric.getTimeSeries().stream().limit(1).forEach(timeSeries -> {
+                        System.out.println("     Time series with " + timeSeries.getValues().size() + " values");
+                        timeSeries.getValues().stream().limit(3).forEach(value -> {
+                            printMetricValue("CPU", value);
+                        });
                     });
                 });
-            });
+            }
             
         } catch (Exception e) {
             System.out.println("   ⚠️  Could not query CPU metrics: " + e.getMessage());
         }
     }
     
-    private static void queryMemoryMetrics(MetricsQueryClient client, String resourceUri) {
+    private static void queryMemoryMetrics(MetricsClient client, String resourceUri) {
         try {
-            MetricsQueryResult result = client.queryResource(
-                resourceUri,
-                Arrays.asList("Available Memory Bytes")
+            MetricsQueryResourcesResult result = client.queryResources(
+                Collections.singletonList(resourceUri),
+                Arrays.asList("Available Memory Bytes"),
+                "Microsoft.Compute/virtualMachines"
             );
             
             System.out.println("   Memory metrics query executed successfully!");
-            System.out.println("   Metrics returned: " + result.getMetrics().size());
+            System.out.println("   Resource queries returned: " + result.getMetricsQueryResults().size());
             
-            result.getMetrics().forEach(metric -> {
-                System.out.println("   Metric: " + metric.getMetricName() + " (Unit: " + metric.getUnit() + ")");
-                
-                metric.getTimeSeries().stream().limit(1).forEach(timeSeries -> {
-                    System.out.println("     Time series with " + timeSeries.getValues().size() + " values");
-                    timeSeries.getValues().stream().limit(2).forEach(value -> {
-                        printMetricValue("Memory", value);
+            for (MetricsQueryResult queryResult : result.getMetricsQueryResults()) {
+                System.out.println("   Resource ID: " + queryResult.getResourceId());
+                queryResult.getMetrics().forEach(metric -> {
+                    System.out.println("   Metric: " + metric.getMetricName() + " (Unit: " + metric.getUnit() + ")");
+                    
+                    metric.getTimeSeries().stream().limit(1).forEach(timeSeries -> {
+                        System.out.println("     Time series with " + timeSeries.getValues().size() + " values");
+                        timeSeries.getValues().stream().limit(2).forEach(value -> {
+                            printMetricValue("Memory", value);
+                        });
                     });
                 });
-            });
+            }
             
         } catch (Exception e) {
             System.out.println("   ⚠️  Could not query memory metrics (may not be available for this resource): " + e.getMessage());
         }
     }
     
-    private static void queryNetworkMetrics(MetricsQueryClient client, String resourceUri) {
+    private static void queryNetworkMetrics(MetricsClient client, String resourceUri) {
         try {
-            MetricsQueryResult result = client.queryResource(
-                resourceUri,
-                Arrays.asList("Network In Total", "Network Out Total")
+            MetricsQueryResourcesResult result = client.queryResources(
+                Collections.singletonList(resourceUri),
+                Arrays.asList("Network In Total", "Network Out Total"),
+                "Microsoft.Compute/virtualMachines"
             );
             
             System.out.println("   Network metrics query executed successfully!");
-            System.out.println("   Metrics returned: " + result.getMetrics().size());
+            System.out.println("   Resource queries returned: " + result.getMetricsQueryResults().size());
             
-            result.getMetrics().forEach(metric -> {
-                System.out.println("   Metric: " + metric.getMetricName() + " (Unit: " + metric.getUnit() + ")");
-                
-                metric.getTimeSeries().stream().limit(1).forEach(timeSeries -> {
-                    System.out.println("     Time series with " + timeSeries.getValues().size() + " values");
-                    timeSeries.getValues().stream().limit(2).forEach(value -> {
-                        printMetricValue("Network", value);
+            for (MetricsQueryResult queryResult : result.getMetricsQueryResults()) {
+                System.out.println("   Resource ID: " + queryResult.getResourceId());
+                queryResult.getMetrics().forEach(metric -> {
+                    System.out.println("   Metric: " + metric.getMetricName() + " (Unit: " + metric.getUnit() + ")");
+                    
+                    metric.getTimeSeries().stream().limit(1).forEach(timeSeries -> {
+                        System.out.println("     Time series with " + timeSeries.getValues().size() + " values");
+                        timeSeries.getValues().stream().limit(2).forEach(value -> {
+                            printMetricValue("Network", value);
+                        });
                     });
                 });
-            });
+            }
             
         } catch (Exception e) {
             System.out.println("   ⚠️  Could not query network metrics: " + e.getMessage());
